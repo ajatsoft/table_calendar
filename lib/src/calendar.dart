@@ -5,6 +5,8 @@ part of table_calendar;
 typedef void OnDaySelected(DateTime day, List events, List marks);
 /// Callback exposing currently visible days (first and last of them), as well as current `CalendarFormat`.
 typedef void OnVisibleDaysChanged(DateTime first, DateTime last, CalendarFormat format);
+/// Signature for reacting to header gestures. Exposes current month and year as a `DateTime` object.
+typedef void HeaderGestureCallback(DateTime focusedDay);
 /// Builder signature for any text that can be localized and formatted with `DateFormat`.
 typedef String TextBuilder(DateTime date, dynamic locale);
 /// Signature for enabling days.
@@ -63,6 +65,16 @@ class TableCalendar extends StatefulWidget {
   /// Called whenever any unavailable day gets tapped.
   /// Replaces `onDaySelected` for those days.
   final VoidCallback onUnavailableDaySelected;
+
+  /// Called whenever any unavailable day gets long pressed.
+  /// Replaces `onDaySelected` for those days.
+  final VoidCallback onUnavailableDayLongPressed;
+
+  /// Called whenever header gets tapped.
+  final HeaderGestureCallback onHeaderTapped;
+
+  /// Called whenever header gets long pressed.
+  final HeaderGestureCallback onHeaderLongPressed;
 
   /// Called whenever the range of visible days changes.
   final OnVisibleDaysChanged onVisibleDaysChanged;
@@ -139,8 +151,6 @@ class TableCalendar extends StatefulWidget {
   /// Set of Builders for `TableCalendar` to work with.
   final CalendarBuilders builders;
 
-  final VoidCallback onUnavailableDayLongPressed;
-
   TableCalendar({
     Key key,
     @required this.calendarController,
@@ -152,6 +162,8 @@ class TableCalendar extends StatefulWidget {
     this.onDayLongPressed,
     this.onUnavailableDaySelected,
     this.onUnavailableDayLongPressed,
+    this.onHeaderTapped,
+    this.onHeaderLongPressed,
     this.onVisibleDaysChanged,
     this.initialSelectedDay,
     this.startDay,
@@ -280,11 +292,21 @@ class _TableCalendarState extends State<TableCalendar> with SingleTickerProvider
     }
   }
 
+  void _onHeaderTapped() {
+    if (widget.onHeaderTapped != null) {
+      widget.onHeaderTapped(widget.calendarController.focusedDay);
+    }
+  }
+
+  void _onHeaderLongPressed() {
+    if (widget.onHeaderLongPressed != null) {
+      widget.onHeaderLongPressed(widget.calendarController.focusedDay);
+    }
+  }
 
   bool _isDayUnavailable(DateTime day) {
-    return (widget.startDay != null && day.isBefore(widget.startDay)) ||
-        (widget.endDay != null && day.isAfter(widget.endDay)) ||
-        (!_isDayEnabled(day));
+    return (widget.startDay != null && day.isBefore(widget.calendarController._normalizeDate(widget.startDay))) ||
+        (widget.endDay != null && day.isAfter(widget.calendarController._normalizeDate(widget.endDay))) ||    (!_isDayEnabled(day));
   }
 
   bool _isDayEnabled(DateTime day) {
@@ -329,12 +351,16 @@ class _TableCalendarState extends State<TableCalendar> with SingleTickerProvider
         padding: widget.headerStyle.leftChevronPadding,
       ),
       Expanded(
-        child: Text(
-          widget.headerStyle.titleTextBuilder != null
-              ? widget.headerStyle.titleTextBuilder(widget.calendarController.focusedDay, widget.locale)
-              : DateFormat.yMMMM(widget.locale).format(widget.calendarController.focusedDay),
-          style: widget.headerStyle.titleTextStyle,
-          textAlign: widget.headerStyle.centerHeaderTitle ? TextAlign.center : TextAlign.start,
+        child: GestureDetector(
+          onTap: _onHeaderTapped,
+          onLongPress: _onHeaderLongPressed,
+          child: Text(
+            widget.headerStyle.titleTextBuilder != null
+                ? widget.headerStyle.titleTextBuilder(widget.calendarController.focusedDay, widget.locale)
+                : DateFormat.yMMMM(widget.locale).format(widget.calendarController.focusedDay),
+            style: widget.headerStyle.titleTextStyle,
+            textAlign: widget.headerStyle.centerHeaderTitle ? TextAlign.center : TextAlign.start,
+          ),
         ),
       ),
       _CustomIconButton(
