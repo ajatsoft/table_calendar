@@ -58,6 +58,9 @@ class TableCalendar extends StatefulWidget {
   /// This property allows you to provide custom holiday rules.
   final Map<DateTime, List> holidays;
 
+  /// Called whenever any day gets long pressed.
+  final OnDaySelected onDayLongPressed;
+
   /// Called whenever any day gets tapped.
   final OnDaySelected onDaySelected;
 
@@ -136,6 +139,8 @@ class TableCalendar extends StatefulWidget {
   /// Set of Builders for `TableCalendar` to work with.
   final CalendarBuilders builders;
 
+  final VoidCallback onUnavailableDayLongPressed;
+
   TableCalendar({
     Key key,
     @required this.calendarController,
@@ -144,7 +149,9 @@ class TableCalendar extends StatefulWidget {
     this.marks = const {},
     this.holidays = const {},
     this.onDaySelected,
+    this.onDayLongPressed,
     this.onUnavailableDaySelected,
+    this.onUnavailableDayLongPressed,
     this.onVisibleDaysChanged,
     this.initialSelectedDay,
     this.startDay,
@@ -245,6 +252,13 @@ class _TableCalendarState extends State<TableCalendar> with SingleTickerProvider
     });
   }
 
+  void _onDayLongPressed(DateTime day) {
+    if (widget.onDayLongPressed != null) {
+      final key = widget.calendarController.visibleEvents.keys.firstWhere((it) => Utils.isSameDay(it, day), orElse: () => null);
+      widget.onDayLongPressed(day, widget.calendarController.visibleEvents[key] ?? []);
+    }
+  }
+
   void _toggleCalendarFormat() {
     setState(() {
       widget.calendarController.toggleCalendarFormat();
@@ -267,9 +281,15 @@ class _TableCalendarState extends State<TableCalendar> with SingleTickerProvider
     }
   }
 
+  void _onUnavailableDayLongPressed() {
+    if (widget.onUnavailableDayLongPressed != null) {
+      widget.onUnavailableDayLongPressed();
+    }
+  }
+
+
   bool _isDayUnavailable(DateTime day) {
-    return (widget.startDay != null && day.isBefore(widget.startDay)) ||
-        (widget.endDay != null && day.isAfter(widget.endDay));
+    return (widget.startDay != null && day.isBefore(widget.startDay)) || (widget.endDay != null && day.isAfter(widget.endDay));
   }
 
   DateTime _getEventKey(DateTime day) {
@@ -437,8 +457,7 @@ class _TableCalendarState extends State<TableCalendar> with SingleTickerProvider
       switchInCurve: Curves.decelerate,
       transitionBuilder: (child, animation) {
         return SlideTransition(
-          position:
-              Tween<Offset>(begin: Offset(widget.calendarController._dx, 0), end: Offset(0, 0)).animate(animation),
+          position: Tween<Offset>(begin: Offset(widget.calendarController._dx, 0), end: Offset(0, 0)).animate(animation),
           child: child,
         );
       },
@@ -575,6 +594,7 @@ class _TableCalendarState extends State<TableCalendar> with SingleTickerProvider
     return GestureDetector(
       behavior: widget.dayHitTestBehavior,
       onTap: () => _isDayUnavailable(date) ? _onUnavailableDaySelected() : _selectDay(date),
+      onLongPress: () => _isDayUnavailable(date) ? _onUnavailableDayLongPressed() : _onDayLongPressed(date),
       child: content,
     );
   }
@@ -595,8 +615,7 @@ class _TableCalendarState extends State<TableCalendar> with SingleTickerProvider
     final isToday = widget.builders.todayDayBuilder != null && tIsToday;
     final isOutsideHoliday = widget.builders.outsideHolidayDayBuilder != null && tIsOutside && tIsHoliday;
     final isHoliday = widget.builders.holidayDayBuilder != null && !tIsOutside && tIsHoliday;
-    final isOutsideWeekend =
-        widget.builders.outsideWeekendDayBuilder != null && tIsOutside && tIsWeekend && !tIsHoliday;
+    final isOutsideWeekend = widget.builders.outsideWeekendDayBuilder != null && tIsOutside && tIsWeekend && !tIsHoliday;
     final isOutside = widget.builders.outsideDayBuilder != null && tIsOutside && !tIsWeekend && !tIsHoliday;
     final isWeekend = widget.builders.weekendDayBuilder != null && !tIsOutside && tIsWeekend && !tIsHoliday;
 
