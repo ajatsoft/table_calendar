@@ -87,7 +87,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     super.dispose();
   }
 
-  void _onDaySelected(DateTime day, List events) {
+  void _onDaySelected(DateTime day, List events, List marks) {
     print('CALLBACK: _onDaySelected');
     setState(() {
       _selectedEvents = events;
@@ -96,6 +96,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   void _onVisibleDaysChanged(DateTime first, DateTime last, CalendarFormat format) {
     print('CALLBACK: _onVisibleDaysChanged');
+  }
+
+  void _onCalendarCreated(DateTime first, DateTime last, CalendarFormat format) {
+    print('CALLBACK: _onCalendarCreated');
   }
 
   @override
@@ -142,6 +146,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       ),
       onDaySelected: _onDaySelected,
       onVisibleDaysChanged: _onVisibleDaysChanged,
+      onCalendarCreated: _onCalendarCreated,
     );
   }
 
@@ -173,7 +178,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         formatButtonVisible: false,
       ),
       builders: CalendarBuilders(
-        selectedDayBuilder: (context, date, _) {
+        selectedDayBuilder: (context, date, _, __) {
           return FadeTransition(
             opacity: Tween(begin: 0.0, end: 1.0).animate(_animationController),
             child: Container(
@@ -189,7 +194,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             ),
           );
         },
-        todayDayBuilder: (context, date, _) {
+        todayDayBuilder: (context, date, _, __) {
           return Container(
             margin: const EdgeInsets.all(4.0),
             padding: const EdgeInsets.only(top: 5.0, left: 6.0),
@@ -202,7 +207,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             ),
           );
         },
-        markersBuilder: (context, date, events, holidays) {
+        markersBuilder: (context, date, events, marks, holidays) {
           final children = <Widget>[];
 
           if (events.isNotEmpty) {
@@ -228,8 +233,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           return children;
         },
       ),
-      onDaySelected: (date, events) {
-        _onDaySelected(date, events);
+      onDaySelected: (date, events, marks) {
+        _onDaySelected(date, events, marks);
         _animationController.forward(from: 0.0);
       },
       onVisibleDaysChanged: _onVisibleDaysChanged,
@@ -320,16 +325,16 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     return ListView(
       children: _selectedEvents
           .map((event) => Container(
-                decoration: BoxDecoration(
-                  border: Border.all(width: 0.8),
-                  borderRadius: BorderRadius.circular(12.0),
-                ),
-                margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-                child: ListTile(
-                  title: Text(event.toString()),
-                  onTap: () => print('$event tapped!'),
-                ),
-              ))
+        decoration: BoxDecoration(
+          border: Border.all(width: 0.8),
+          borderRadius: BorderRadius.circular(12.0),
+        ),
+        margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+        child: ListTile(
+          title: Text(event.toString()),
+          onTap: () => print('$event tapped!'),
+        ),
+      ))
           .toList(),
     );
   }
