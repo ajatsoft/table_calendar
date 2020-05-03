@@ -1,27 +1,20 @@
 //  Copyright (c) 2019 Aleksander Woźniak
 //  Licensed under Apache License v2.0
-
 part of table_calendar;
-
 /// Callback exposing currently selected day.
 typedef void OnDaySelected(DateTime day, List events, List marks);
-
 /// Callback exposing currently visible days (first and last of them), as well as current `CalendarFormat`.
 typedef void OnVisibleDaysChanged(DateTime first, DateTime last, CalendarFormat format);
-
 /// Builder signature for any text that can be localized and formatted with `DateFormat`.
 typedef String TextBuilder(DateTime date, dynamic locale);
-
 /// Signature for enabling days.
 typedef bool EnabledDayPredicate(DateTime day);
-
 
 /// Format to display the `TableCalendar` with.
 enum CalendarFormat { month, twoWeeks, week }
 
 /// Available animations to update the `CalendarFormat` with.
 enum FormatAnimation { slide, scale }
-
 /// Available day of week formats. `TableCalendar` will start the week with chosen day.
 /// * `StartingDayOfWeek.monday`: Monday - Sunday
 /// * `StartingDayOfWeek.tuesday`: Tuesday - Monday
@@ -38,7 +31,6 @@ int _getWeekdayNumber(StartingDayOfWeek weekday) {
 
 /// Gestures available to interal `TableCalendar`'s logic.
 enum AvailableGestures { none, verticalSwipe, horizontalSwipe, all }
-
 /// Highly customizable, feature-packed Flutter Calendar with gestures, animations and multiple formats.
 class TableCalendar extends StatefulWidget {
   /// Controller required for `TableCalendar`.
@@ -198,12 +190,10 @@ class TableCalendar extends StatefulWidget {
   @override
   _TableCalendarState createState() => _TableCalendarState();
 }
-
 class _TableCalendarState extends State<TableCalendar> with SingleTickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-
     widget.calendarController._init(
       events: widget.events,
       marks: widget.marks,
@@ -218,24 +208,19 @@ class _TableCalendarState extends State<TableCalendar> with SingleTickerProvider
       includeInvisibleDays: widget.calendarStyle.outsideDaysVisible,
     );
   }
-
   @override
   void didUpdateWidget(TableCalendar oldWidget) {
     super.didUpdateWidget(oldWidget);
-
     if (oldWidget.events != widget.events) {
       widget.calendarController._events = widget.events;
     }
-
     if (oldWidget.marks != widget.marks) {
       widget.calendarController._marks = widget.marks;
     }
-
     if (oldWidget.holidays != widget.holidays) {
       widget.calendarController._holidays = widget.holidays;
     }
   }
-
   void _selectedDayCallback(DateTime day) {
     if (widget.onDaySelected != null) {
       widget.onDaySelected(day, widget.calendarController.visibleEvents[_getEventKey(day)] ?? [], widget.calendarController.visibleMarks[_getMarkKey(day)] ?? []);
@@ -319,25 +304,18 @@ class _TableCalendarState extends State<TableCalendar> with SingleTickerProvider
 
   @override
   Widget build(BuildContext context) {
-    final children = <Widget>[];
 
-    if (widget.headerVisible) {
-      children.addAll([
-        const SizedBox(height: 6.0),
-        _buildHeader(),
-      ]);
-    }
-
-    children.addAll([
-      const SizedBox(height: 10.0),
-      _buildCalendarContent(),
-      const SizedBox(height: 4.0),
-    ]);
 
     return ClipRect(
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        children: children,
+        children: <Widget>[
+          if (widget.headerVisible) _buildHeader(),
+          Padding(
+            padding: widget.calendarStyle.contentPadding,
+            child: _buildCalendarContent(),
+          ),
+        ],
       ),
     );
   }
@@ -372,9 +350,14 @@ class _TableCalendarState extends State<TableCalendar> with SingleTickerProvider
       children.insert(3, _buildFormatButton());
     }
 
-    return Row(
-      mainAxisSize: MainAxisSize.max,
-      children: children,
+    return Container(
+        decoration: widget.headerStyle.decoration,
+        margin: widget.headerStyle.headerMargin,
+        padding: widget.headerStyle.headerPadding,
+        child: Row(
+        mainAxisSize: MainAxisSize.max,
+        children: children,
+    )
     );
   }
 
@@ -447,7 +430,6 @@ class _TableCalendarState extends State<TableCalendar> with SingleTickerProvider
 
     return Container(
       key: key,
-      margin: const EdgeInsets.symmetric(horizontal: 8.0),
       child: wrappedChild,
     );
   }
@@ -489,7 +471,7 @@ class _TableCalendarState extends State<TableCalendar> with SingleTickerProvider
   Widget _buildTable() {
     final daysInWeek = 7;
     final children = <TableRow>[
-      _buildDaysOfWeek(),
+      if (widget.calendarStyle.renderDaysOfWeek) _buildDaysOfWeek(),
     ];
 
     int x = 0;

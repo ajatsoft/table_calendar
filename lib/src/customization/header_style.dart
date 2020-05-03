@@ -32,10 +32,16 @@ class HeaderStyle {
   /// Style for FormatButton Text.
   final TextStyle formatButtonTextStyle;
 
-  /// Background Decoration for FormatButton.
+  /// Style for FormatButton `Text`.
   final Decoration formatButtonDecoration;
 
-  /// Inside Padding for FormatButton.
+  /// Inside padding of the whole header.
+  final EdgeInsets headerPadding;
+
+  /// Outside margin of the whole header.
+  final EdgeInsets headerMargin;
+
+  /// Inside padding for FormatButton.
   final EdgeInsets formatButtonPadding;
 
   /// Inside Padding for left chevron.
@@ -58,6 +64,10 @@ class HeaderStyle {
   /// Defaults to black `Icons.chevron_right`.
   final Icon rightChevronIcon;
 
+  /// Header decoration, used to draw border or shadow or change color of the header
+  /// Defaults to empty BoxDecoration.
+  final BoxDecoration decoration;
+
   const HeaderStyle({
     this.centerHeaderTitle = false,
     this.formatButtonVisible = true,
@@ -69,6 +79,8 @@ class HeaderStyle {
       border: const Border(top: BorderSide(), bottom: BorderSide(), left: BorderSide(), right: BorderSide()),
       borderRadius: const BorderRadius.all(Radius.circular(12.0)),
     ),
+    this.headerMargin,
+    this.headerPadding = const EdgeInsets.symmetric(vertical: 8.0),
     this.formatButtonPadding = const EdgeInsets.symmetric(horizontal: 10.0, vertical: 4.0),
     this.leftChevronPadding = const EdgeInsets.all(12.0),
     this.rightChevronPadding = const EdgeInsets.all(12.0),
@@ -76,5 +88,6 @@ class HeaderStyle {
     this.rightChevronMargin = const EdgeInsets.symmetric(horizontal: 8.0),
     this.leftChevronIcon = const Icon(Icons.chevron_left, color: Colors.black),
     this.rightChevronIcon = const Icon(Icons.chevron_right, color: Colors.black),
+    this.decoration = const BoxDecoration(),
   });
 }
